@@ -1,22 +1,28 @@
 ﻿@using Models
 @using Microsoft.AspNetCore.Components.Web
-@using System.Text.Json;
+@using System.Text.Json
 
 @inject IJSRuntime _jsRuntime;
 
 @if (_life != null)
 {
-    <div>
-        <canvas width="@_canvasWidth"
-                height="@_canvasHeight"
-                @ref="@_canvasRef"
-                @onclick="@(e => OnCanvasClick(e.OffsetX, e.OffsetY))">  
-        </canvas>
-    </div>
-    <button @onclick=@(e => OnTickClicked()) class="btn btn-primary">Tick</button>
-    <button @onclick=@(e => OnClear()) class="btn btn-primary">Clear</button>
-    <button @onclick=@OnDownload class="btn btn-primary">Save</button>
-    <InputFile OnChange="@OnSelectedFileChanged" class="btn"></InputFile>
+    <body style="background-color:#2E3440;">
+        <div style="display:flex; justify-content: center; height:90%">
+            <canvas width="@_canvasWidth"
+                    height="@_canvasHeight"
+                    @ref="@_canvasRef"
+                    @onclick="@(e => OnCanvasClick(e.OffsetX, e.OffsetY))">  
+            </canvas>
+        </div>
+        <div style="background-color:#2E3440; display:flex; justify-content: center;">
+            <button disabled=@RunSimulation @onclick=@(e => OnRunClicked()) class="btn btn-primary">Run</button>
+            <button disabled=@(!RunSimulation) @onclick=@(e => Stop()) class="btn btn-primary">Stop</button>
+            <button @onclick=@(e => OnTickClicked()) class="btn btn-primary">Tick</button>
+            <button @onclick=@(e => OnClear()) class="btn btn-primary">Clear</button>
+            <button @onclick=@OnDownload class="btn btn-primary">Save</button>
+            <InputFile OnChange="@OnSelectedFileChanged" class="btn"></InputFile>
+        </div>
+    </body>
 }
 else
 {
@@ -26,7 +32,7 @@ else
 
 
 @code {
-     private const int SpaceForButtons = 30;
+    private const int SpaceForButtons = 30;
 
     ElementReference _canvasRef;
 
@@ -48,6 +54,8 @@ else
     [Parameter]
     public int PixelHeight { get; set; }
 
+    protected bool RunSimulation { get; set; }
+
     protected override void OnParametersSet()
     {
         InitData();
@@ -65,7 +73,7 @@ else
                 mask[row][col] = (byte)currentCell.CurrentState;
             }
         }
-        var maskColors = new[] { "black", "red" };
+        var maskColors = new[] { "#3B4252", "#88C0D0" };
 
         await _jsRuntime.InvokeVoidAsync("renderCellsOnCanvas", _canvasRef, mask, maskColors, _cellEdgeAndSpacingLength, _cellEdgeLength);
     }
@@ -109,6 +117,23 @@ else
         var clickedCol = (int)((pixelX / _canvasWidth) * Columns);
 
         _life?.Toggle(clickedRow, clickedCol);
+    }
+
+    private async Task OnRunClicked()
+    {
+        RunSimulation = true;
+
+        while (RunSimulation)
+        {
+            _life?.Tick();
+            StateHasChanged(); //Tell Blazor to re-render the component
+            await Task.Delay(500);
+        }
+    }
+
+    public void Stop()
+    {
+        RunSimulation = false;
     }
 
     private void OnTickClicked()

@@ -14,7 +14,7 @@
             // This only works because I added an appropriate Javascript function to the "window" object. See index.html.
             var dimensions = await _jsRuntime.InvokeAsync<WindowDimensions>("getWindowDimensions");
             PixelWidth = Math.Min(dimensions.Width, dimensions.Height);
-            PixelHeight = Math.Min(dimensions.Width, dimensions.Height);
+            PixelHeight = Math.Min(dimensions.Width, dimensions.Height)-25;
             StateHasChanged();
         }
     }
@@ -26,7 +26,7 @@
     }
 }
 
-<SimpleLife Rows="50"
-            Columns="50"
+<SimpleLife Rows="30"
+            Columns="30"
             PixelWidth="@PixelWidth"
             PixelHeight="@PixelHeight" />
